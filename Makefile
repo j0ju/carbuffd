@@ -1,0 +1,23 @@
+# - makefile -
+# vim: noet
+
+all: carbuffd carbuffd.386 carbuffd.amd64 carbuffd.arm
+
+clean:
+	rm -f carbuffd.386  carbuffd.amd64 carbuffd.arm
+
+carbuffd: main.go
+	go build -o $@
+	strip -g $@
+
+carbuffd.386: main.go
+	GOARCH=386   go build -o $@
+	strip -g $@
+
+carbuffd.amd64: main.go
+	GOARCH=amd64 go build -o $@
+	strip -g $@
+
+carbuffd.arm: main.go
+	GOARCH=arm   go build -o $@
+	strip -g $@
