@@ -175,6 +175,9 @@ func metricsChannelReader(raddr string, ch chan string) {
 }
 func main() {
 
+	flag.Uint64Var(&metricsBufferSize, "l", metricsBufferSize, "default queue len")
+	flag.UintVar(&statsInterval, "i", statsInterval, "interval for internal metrics")
+	flag.StringVar(&statsFmt, "p", statsFmt, "format for internal statistics %[1]s = HOSTNAME, %[2]s is the metric name, if empty no internal metrics will be generated")
 	flag.Parse()
 
 	if len(flag.Args()) == 1 {
