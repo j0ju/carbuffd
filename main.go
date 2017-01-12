@@ -93,7 +93,7 @@ func carbonClientHandler(c net.Conn, ch chan string) {
 
 		metric, isCorrect := carbonMetricFilter(line)
 		if !isCorrect {
-			fmt.Printf("carbonClientHandler[%d]: non metric received '%s'\n", stats.connectionCount, line)
+			fmt.Printf("carbonClientHandler[%d]: non metric received '%s' from %s\n", stats.connectionCount, line, c.RemoteAddr().String())
 			stats.invalidMessages++
 			continue
 		}
