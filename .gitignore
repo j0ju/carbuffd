@@ -1,5 +1,7 @@
 # .gitignore - created with the help of https://www.gitignore.io/api/go,vim
 
+carbuffd
+carbuffd.exe
 carbuffd.386
 carbuffd.amd64
 carbuffd.arm
