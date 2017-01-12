@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"os"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -173,6 +175,35 @@ func metricsChannelReader(raddr string, ch chan string) {
 		}
 	}
 }
+func internalMetricsGenerator(ch chan string) {
+	hostname, err := os.Hostname()
+	if err != nil {
+		panic(err)
+	}
+	hostname = strings.Replace(hostname, ".", "_", -1)
+	tmpl := statsFmt + " %d %d"
+	for {
+		time.Sleep(time.Duration(statsInterval) * time.Second)
+		epoch := time.Now().Unix()
+
+		reflectStats := reflect.ValueOf(&stats).Elem()
+		for i := 0; i < reflectStats.NumField(); i++ {
+			name := reflectStats.Type().Field(i).Name
+			val := reflectStats.Field(i)
+			metric := fmt.Sprintf(tmpl, hostname, name, val, epoch)
+
+			if !(uint64(len(ch)) < metricsBufferSize-1) {
+				// dequeue old events to add newer events
+				<-ch
+				stats.messagesDropped++
+				fmt.Printf("metricsChannelReader: dropped event, queuelen %d ~ limit %d\n", len(ch), metricsBufferSize)
+			}
+			ch <- metric
+			fmt.Printf("internalMetricsGenerator: %s\n", metric)
+		}
+
+	}
+}
 func main() {
 
 	flag.Uint64Var(&metricsBufferSize, "l", metricsBufferSize, "default queue len")
@@ -191,6 +222,7 @@ func main() {
 
 	metricsChannel := make(chan string, metricsBufferSize)
 	go carbonServer(laddr, metricsChannel)
+	go internalMetricsGenerator(metricsChannel)
 	metricsChannelReader(raddr, metricsChannel)
 }
 
