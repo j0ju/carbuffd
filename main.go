@@ -186,6 +186,7 @@ func internalMetricsGenerator(ch chan string) {
 		time.Sleep(time.Duration(statsInterval) * time.Second)
 		epoch := time.Now().Unix()
 
+		// metrics will be generated via reflection of internal stats struct
 		reflectStats := reflect.ValueOf(&stats).Elem()
 		for i := 0; i < reflectStats.NumField(); i++ {
 			name := reflectStats.Type().Field(i).Name
@@ -196,12 +197,11 @@ func internalMetricsGenerator(ch chan string) {
 				// dequeue old events to add newer events
 				<-ch
 				stats.messagesDropped++
-				fmt.Printf("metricsChannelReader: dropped event, queuelen %d ~ limit %d\n", len(ch), metricsBufferSize)
+				fmt.Printf("internalMetricsGenerator: dropped event, queuelen %d ~ limit %d\n", len(ch), metricsBufferSize)
 			}
 			ch <- metric
-			fmt.Printf("internalMetricsGenerator: %s\n", metric)
+			//fmt.Printf("internalMetricsGenerator: %s\n", metric)
 		}
-
 	}
 }
 func main() {
