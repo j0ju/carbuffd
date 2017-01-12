@@ -98,7 +98,7 @@ func carbonClientHandler(c net.Conn, ch chan string) {
 			continue
 		}
 		if !(uint64(len(ch)) < metricsBufferSize-1) {
-		} else {
+			// dequeue old events to add newer events
 			<-ch
 			stats.messagesDropped++
 			fmt.Printf("metricsChannelReader: dropped event, queuelen %d ~ limit %d\n", len(ch), metricsBufferSize)
