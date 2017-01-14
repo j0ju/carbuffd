@@ -31,9 +31,9 @@ var (
 	metricsBufferSize uint64 = 1048576
 	laddr             string = ":2003"
 	raddr             string = ""
-	stats             InternalStats
 	statsInterval     uint   = 60
 	statsFmt          string = "carbon.carbuffd.%[1]s.%[2]s"
+	stats             InternalStats
 )
 
 func carbonMetricFilter(l string) (string, bool) {
@@ -115,7 +115,9 @@ func carbonServer(laddr string, ch chan string) {
 	if err != nil {
 		panic(err)
 	}
+	defer l.Close()
 	fmt.Printf("carbonServer: listening on %s\n", laddr)
+
 	for {
 		c, err := l.Accept()
 		if err != nil {
@@ -153,13 +155,16 @@ func metricsChannelReader(raddr string, ch chan string) {
 		if netErr, ok := err.(net.Error); ok {
 			if !netErr.Temporary() {
 				fmt.Printf("metricsChannelReader: non temporary error, resetting socket\n")
+				(*c).Close()
 				c = nil
 			}
 		}
 
 		if err == nil {
 			err_wait_msec = ERROR_WAIT_START_MSEC * time.Millisecond
-			//fmt.Printf("%s\n", m)
+			if raddr == "" {
+				fmt.Printf("%s\n", m)
+			}
 			stats.messagesRelayed++
 		} else {
 			time.Sleep(err_wait_msec)
@@ -211,9 +216,9 @@ func main() {
 	flag.StringVar(&statsFmt, "p", statsFmt, "format for internal statistics %[1]s = HOSTNAME, %[2]s is the metric name, if empty no internal metrics will be generated")
 	flag.Parse()
 
-	if len(flag.Args()) == 1 {
+	if len(flag.Args()) == 1 { // test mode receive only
 		laddr = flag.Args()[0]
-	} else if len(flag.Args()) == 2 {
+	} else if len(flag.Args()) == 2 { // receive, augment, reley
 		laddr = flag.Args()[0]
 		raddr = flag.Args()[1]
 	} else {
