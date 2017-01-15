@@ -21,10 +21,12 @@ const (
 type InternalStats struct {
 	connectionCount        uint64
 	currentConnectionCount uint64
+	messageChannelSize     uint64
 	messagesRelayed        uint64
 	messagesDropped        uint64
 	invalidMessages        uint64
 	augmentedMessages      uint64
+	uptimeSeconds          uint64
 }
 
 var (
@@ -188,11 +190,15 @@ func internalMetricsGenerator(ch chan string) {
 	if err != nil {
 		panic(err)
 	}
+	startEpoch := time.Now().Unix()
 	hostname = strings.Replace(hostname, ".", "_", -1)
 	tmpl := statsFmt + " %d %d"
 	for {
 		time.Sleep(time.Duration(statsInterval) * time.Second)
 		epoch := time.Now().Unix()
+
+		stats.messageChannelSize = uint64(len(ch))
+		stats.uptimeSeconds = uint64(epoch) - uint64(startEpoch)
 
 		// metrics will be generated via reflection of internal stats struct
 		reflectStats := reflect.ValueOf(&stats).Elem()
