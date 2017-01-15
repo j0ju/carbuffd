@@ -181,6 +181,9 @@ func metricsChannelReader(raddr string, ch chan string) {
 	}
 }
 func internalMetricsGenerator(ch chan string) {
+	if statsFmt == "" { // if statsFmt is empty, do not emit metrics
+		return
+	}
 	hostname, err := os.Hostname()
 	if err != nil {
 		panic(err)
