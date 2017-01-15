@@ -4,7 +4,7 @@
 all: carbuffd carbuffd.386 carbuffd.amd64 carbuffd.arm
 
 clean:
-	rm -f carbuffd.386  carbuffd.amd64 carbuffd.arm
+	rm -f carbuffd.386  carbuffd.amd64 carbuffd.arm carbuffd
 
 carbuffd: main.go
 	go build -o $@
