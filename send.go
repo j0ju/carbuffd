@@ -37,8 +37,10 @@ func metricsChannelReader(raddr string, ch chan string) {
 		if netErr, ok := err.(net.Error); ok {
 			if !netErr.Temporary() {
 				log.Errorf("non temporary error, resetting socket\n")
-				(*c).Close()
-				c = nil
+				if c != nil {
+					(*c).Close()
+					c = nil
+				}
 			}
 		}
 
