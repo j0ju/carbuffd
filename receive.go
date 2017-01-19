@@ -74,6 +74,7 @@ func carbonClientHandler(c net.Conn, ch chan string) {
 			stats.invalidMessages++
 			continue
 		}
+		log.Debugf("%s\n", line)
 		if !(len(ch) < cap(ch)-1) {
 			// dequeue old events to add newer events
 			<-ch
