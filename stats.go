@@ -55,10 +55,10 @@ func internalMetricsGenerator(ch chan string) {
 				// dequeue old events to add newer events
 				<-ch
 				stats.messagesDropped++
-				fmt.Printf("internalMetricsGenerator: dropped event, queuelen %d ~ limit %d\n", len(ch), metricsBufferSize)
+				log.Warningf("dropped event, qlen %d ~ limit %d\n", len(ch), cap(ch))
 			}
 			ch <- metric
-			//fmt.Printf("internalMetricsGenerator: %s\n", metric)
+			log.Debugf("%s\n", metric)
 		}
 	}
 }

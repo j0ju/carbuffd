@@ -4,7 +4,6 @@
 package main
 
 import (
-	"fmt"
 	"net"
 	"time"
 )
@@ -37,7 +36,7 @@ func metricsChannelReader(raddr string, ch chan string) {
 
 		if netErr, ok := err.(net.Error); ok {
 			if !netErr.Temporary() {
-				fmt.Printf("metricsChannelReader: non temporary error, resetting socket\n")
+				log.Errorf("non temporary error, resetting socket\n")
 				(*c).Close()
 				c = nil
 			}
@@ -46,7 +45,7 @@ func metricsChannelReader(raddr string, ch chan string) {
 		if err == nil {
 			err_wait_msec = ERROR_WAIT_START_MSEC * time.Millisecond
 			if raddr == "" {
-				fmt.Printf("%s\n", m)
+				log.Debugf("%s\n", m)
 			}
 			stats.messagesRelayed++
 		} else {
@@ -55,10 +54,10 @@ func metricsChannelReader(raddr string, ch chan string) {
 			// if channel is not full reinsert it
 			if uint64(len(ch)) < metricsBufferSize-1 {
 				ch <- m
-				fmt.Printf("metricsChannelReader: %v, requeued, %d queuelen, wait %v\n", err, len(ch), err_wait_msec)
+				log.Warningf("%v, requeued, %d qlen, wait %v\n", err, len(ch), err_wait_msec)
 			} else {
 				stats.messagesDropped++
-				fmt.Printf("metricsChannelReader: %v, not requeued, %d queuelen ~ limit %d, wait %v\n", err, len(ch), metricsBufferSize, err_wait_msec)
+				log.Errorf("%v, not requeued, %d qlen ~ limit %d, wait %v\n", err, len(ch), cap(ch), err_wait_msec)
 			}
 		}
 	}

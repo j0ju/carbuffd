@@ -33,12 +33,12 @@ func carbonMetricFilter(l string) (string, bool) {
 	if err != nil {
 		stats.augmentedMessages++
 		epoch = strconv.FormatInt(time.Now().Unix(), 10)
-		//fmt.Printf("carbonMetricFilter: metric %s augmented with epoch %s\n", metric, epoch)
+		log.Infof("metric %s augmented with epoch %s\n", metric, epoch)
 	}
 	return fmt.Sprintf("%s %s %s", metric, value, epoch), true
 }
 func carbonClientHandler(c net.Conn, ch chan string) {
-	fmt.Printf("carbonClientHandler[%d]: %s accepted\n", stats.connectionCount, c.RemoteAddr().String())
+	log.Noticef("%s accepted (connection# %d)\n", c.RemoteAddr().String(), stats.connectionCount)
 	stats.connectionCount++
 	stats.currentConnectionCount++
 	carbonClientHandler_metrics_ingress_count := 0
@@ -50,14 +50,14 @@ func carbonClientHandler(c net.Conn, ch chan string) {
 		c.SetReadDeadline(time.Now().Add(SOCKET_TIMEOUT_DEFAULT * time.Second))
 		line, err := reader.ReadString('\n')
 		if err == io.EOF {
-			fmt.Printf("carbonClientHandler[%d]: %s closed (%d lines received)\n", stats.connectionCount, c.RemoteAddr().String(), carbonClientHandler_metrics_ingress_count)
+			log.Noticef("%s closed (%d lines received)\n", c.RemoteAddr().String(), carbonClientHandler_metrics_ingress_count)
 			break
 		} else if netErr, ok := err.(net.Error); ok {
 			if netErr.Timeout() {
-				fmt.Printf("carbonClientHandler[%d]: %s timeout (%d lines received)\n", stats.connectionCount, c.RemoteAddr().String(), carbonClientHandler_metrics_ingress_count)
+				log.Errorf("%s timeout (%d lines received)\n", c.RemoteAddr().String(), carbonClientHandler_metrics_ingress_count)
 				break
 			} else if !netErr.Temporary() {
-				fmt.Printf("carbonClientHandler[%d]: %s temporary (%d lines received)\n", stats.connectionCount, c.RemoteAddr().String(), carbonClientHandler_metrics_ingress_count)
+				log.Errorf("%s temporary (%d lines received)\n", c.RemoteAddr().String(), carbonClientHandler_metrics_ingress_count)
 				break
 			}
 		} else if err != nil {
@@ -70,7 +70,7 @@ func carbonClientHandler(c net.Conn, ch chan string) {
 
 		metric, isCorrect := carbonMetricFilter(line)
 		if !isCorrect {
-			fmt.Printf("carbonClientHandler[%d]: non metric received '%s' from %s\n", stats.connectionCount, line, c.RemoteAddr().String())
+			log.Errorf("non metric received '%s' from %s\n", line, c.RemoteAddr().String())
 			stats.invalidMessages++
 			continue
 		}
@@ -78,7 +78,7 @@ func carbonClientHandler(c net.Conn, ch chan string) {
 			// dequeue old events to add newer events
 			<-ch
 			stats.messagesDropped++
-			fmt.Printf("metricsChannelReader: dropped event, queuelen %d ~ limit %d\n", len(ch), metricsBufferSize)
+			log.Warningf("dropped event, qlen %d ~ cap %d\n", len(ch), cap(ch))
 		}
 		ch <- metric
 		carbonClientHandler_metrics_ingress_count++
@@ -93,7 +93,7 @@ func carbonServer(laddr string, ch chan string) {
 		panic(err)
 	}
 	defer l.Close()
-	fmt.Printf("carbonServer: listening on %s\n", laddr)
+	log.Noticef("listening on %s\n", laddr)
 
 	for {
 		c, err := l.Accept()
