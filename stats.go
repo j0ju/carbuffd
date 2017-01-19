@@ -51,7 +51,7 @@ func internalMetricsGenerator(ch chan string) {
 			val := reflectStats.Field(i)
 			metric := fmt.Sprintf(tmpl, hostname, name, val, epoch)
 
-			if !(uint64(len(ch)) < metricsBufferSize-1) {
+			if !(len(ch) < cap(ch)-1) {
 				// dequeue old events to add newer events
 				<-ch
 				stats.messagesDropped++

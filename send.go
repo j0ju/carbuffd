@@ -52,7 +52,7 @@ func metricsChannelReader(raddr string, ch chan string) {
 			time.Sleep(err_wait_msec)
 			err_wait_msec *= 2
 			// if channel is not full reinsert it
-			if uint64(len(ch)) < metricsBufferSize-1 {
+			if len(ch) < cap(ch) {
 				ch <- m
 				log.Warningf("%v, requeued, %d qlen, wait %v\n", err, len(ch), err_wait_msec)
 			} else {
