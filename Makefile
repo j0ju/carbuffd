@@ -1,5 +1,6 @@
 # - makefile -
-# vim: noet
+# LICENSE: GPLv2, see attached License
+# Author: Joerg Jungermann
 
 all: carbuffd carbuffd.386 carbuffd.amd64 carbuffd.arm
 
@@ -21,3 +22,5 @@ carbuffd.amd64: main.go
 carbuffd.arm: main.go
 	GOARCH=arm   go build -o $@
 	strip -g $@
+
+# vim: noet
