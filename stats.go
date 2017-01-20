@@ -14,6 +14,7 @@ import (
 type InternalStats struct {
 	connectionCount        uint64
 	currentConnectionCount uint64
+	messageChannelLimit    uint64
 	messageChannelSize     uint64
 	messagesRelayed        uint64
 	messagesDropped        uint64
@@ -36,6 +37,7 @@ func internalMetricsGenerator(ch chan string) {
 	}
 	startEpoch := time.Now().Unix()
 	hostname = strings.Replace(hostname, ".", "_", -1)
+	stats.messageChannelLimit = uint64(cap(ch))
 	tmpl := statsFmt + " %d %d"
 	for {
 		time.Sleep(time.Duration(statsInterval) * time.Second)
