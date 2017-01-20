@@ -91,11 +91,12 @@ func carbonClientHandler(c net.Conn, ch chan string) {
 func carbonServer(laddr string, ch chan string) {
 	l, err := net.Listen("tcp", laddr)
 	if err != nil {
+		log.Critical(err)
 		panic(err)
 	}
 	defer l.Close()
-	log.Noticef("listening on %s\n", laddr)
 
+	log.Noticef("listening on %s\n", laddr)
 	for {
 		c, err := l.Accept()
 		if err != nil {
