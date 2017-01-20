@@ -25,9 +25,6 @@ func parseCommandLine() {
 		fmt.Fprintf(os.Stderr, "  If remoteIP:port is not given, it just consumes all metrics\n")
 		fmt.Fprintf(os.Stderr, "  This is handy for debugging\n")
 		fmt.Fprintf(os.Stderr, "\n")
-		fmt.Fprintf(os.Stderr, "  If -p is set to an empty string, internal statistics will not be emited.\n")
-		fmt.Fprintf(os.Stderr, "    %[1]s = HOSTNAME, %[2]s is the metric name\n")
-		fmt.Fprintf(os.Stderr, "\n")
 		fmt.Fprintf(os.Stderr, "  Log level values\n")
 		fmt.Fprintf(os.Stderr, "    %[1]d %10[1]s \n", logging.DEBUG)
 		fmt.Fprintf(os.Stderr, "    %[1]d %10[1]s \n", logging.INFO)
@@ -40,10 +37,10 @@ func parseCommandLine() {
 	}
 
 	// defaults are set in default.go
-	flag.Uint64Var(&metricsBufferSize, "l", metricsBufferSize, "default queue len")
-	flag.UintVar(&statsInterval, "i", statsInterval, "interval for internal metrics")
-	flag.StringVar(&statsFmt, "p", statsFmt, "format for internal statistics")
-	flag.IntVar(&logLevel, "d", logLevel, "log level")
+	flag.Uint64Var(&metricsBufferSize, "size", metricsBufferSize, "default queue len")
+	flag.UintVar(&statsInterval, "interval", statsInterval, "interval for internal metrics")
+	flag.IntVar(&logLevel, "loglevel", logLevel, "log level")
+	flag.StringVar(&logFile, "logfile", logFile, "log file, instead of logging to STDERR")
 	flag.Parse()
 
 	if len(flag.Args()) == 1 { // test mode receive only

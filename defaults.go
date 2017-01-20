@@ -19,6 +19,7 @@ var (
 	statsInterval     uint   = 60
 	statsFmt          string = "carbon.carbuffd.%[1]s.%[2]s"
 	logLevel                 = int(logging.NOTICE)
+	logFile           string = "-" // -, syslog, syslog:facility, /patch/to/file
 )
 
 // vim: foldmethod=syntax
