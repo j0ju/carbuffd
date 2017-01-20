@@ -1,3 +1,8 @@
+# LICENSE: GPLv2, see attached License
+# Author: Joerg Jungermann
+
+# carbuffd service for systemd
+
 [Unit]
 Description=carbuffd
 Before=collectd.service

@@ -1,5 +1,9 @@
 #!/bin/sh /etc/rc.common
-# Copyright (C) 2010-2014 OpenWrt.org
+
+# LICENSE: GPLv2, see attached License
+# Author: Joerg Jungermann
+
+# carbuffd initscript for OpenWRT/LEDE using procd
 
 START=99
 STOP=10
@@ -19,11 +23,6 @@ BIN="/opt/go/bin/carbuffd"
 
 [ -r "$ENVFILE" ] && \
   . "$ENVFILE"
-
-if [ -r /etc/TZ ]; then
-  read TZ < /etc/TZ
-  export TZ
-fi
 
 start_service() {
 	procd_open_instance
