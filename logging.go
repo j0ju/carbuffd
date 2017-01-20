@@ -5,9 +5,9 @@ package main
 
 import (
 	"github.com/op/go-logging"
+	"log/syslog"
 	"os"
 	"path"
-	"strings"
 )
 
 const (
@@ -22,16 +22,22 @@ var (
 
 func initLogging() {
 	var (
-		backend   *logging.LogBackend
+		backend   logging.Backend
 		logFormat logging.Formatter
+		err       error
 	)
 
 	if logFile == "-" {
 		backend = logging.NewLogBackend(os.Stderr, "", 0)
 		logFormat = logging.MustStringFormatter(logFormatDefault)
 
-	} else if logSyslog := strings.SplitN(logFile, ":", 2); logSyslog[0] == "syslog" {
-		log.Fatalf("syslog not implemented")
+	} else if logFile == "syslog" {
+		syslogPrefix := path.Base(os.Args[0])
+		backend, err = logging.NewSyslogBackendPriority(syslogPrefix, syslog.LOG_LOCAL4)
+		if err != nil {
+			log.Fatalf("error opening channel to syslog %v", err)
+		}
+		logFormat = logging.MustStringFormatter(logFormatSyslog)
 
 	} else {
 		if !path.IsAbs(logFile) {
