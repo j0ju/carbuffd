@@ -1,0 +1,35 @@
+[Unit]
+Description=carbuffd
+Before=collectd.service
+After=syslog.socket
+After=local-fs.target
+ConditionFileIsExecutable=/opt/go/bin/carbuffd
+
+[Install]
+WantedBy=multi-user.target
+WantedBy=collectd.service
+RequiredBy=collectd.service
+
+[Service]
+Type=simple
+Restart=always
+StandardOutput=syslog
+StandardError=inherit
+SyslogFacility=local4
+SyslogIdentifier=carbuffd
+
+# set sane defaults
+Environment="LOGFILE=syslog"
+Environment="LOGLEVEL=3"
+Environment="INTERVAL=60"
+Environment="SIZE=1000"
+Environment="LADDR=[::1]:2003"
+
+# if this is not set in /etc/carbuffd.env, it just consumes the events
+Environment="RADDR="
+
+# override via environment file
+EnvironmentFile=/etc/carbuffd.env
+
+ExecStart=/opt/go/bin/carbuffd -logfile $LOGFILE -loglevel $LOGLEVEL -interval $INTERVAL -size $SIZE $LADDR $RADDR
+
