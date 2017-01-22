@@ -15,7 +15,8 @@ func connectToRemote(raddr string) (*net.Conn, error) {
 	d, e := dialer.Dial("tcp", raddr)
 	return &d, e
 }
-func metricsChannelReader(raddr string, ch chan string) {
+
+func metricsForwarder(raddr string, ch chan string) {
 	var (
 		c   *net.Conn
 		err error

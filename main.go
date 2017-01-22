@@ -14,7 +14,7 @@ func main() {
 	metricsChannel := make(chan string, metricsBufferSize)
 	go carbonServer(laddr, metricsChannel)
 	go internalMetricsGenerator(metricsChannel)
-	go metricsChannelReader(raddr, metricsChannel)
+	go metricsForwarder(raddr, metricsChannel)
 
 	<-doQuit
 }
