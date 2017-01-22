@@ -44,10 +44,9 @@ func carbonClientHandler(c net.Conn, ch chan string) {
 	stats.currentConnectionCount++
 	carbonClientHandler_metrics_ingress_count := 0
 
-	// TODO: socket timeout setzen: max wert <- burst -> min wert
-	// c.SetReadDeadline(!!! time.Duration(SOCKET_TIMEOUT_DEFAULT * time.Second))
 	reader := bufio.NewReader(c)
-	for {
+	for { // endless loop, break on close or errors
+		// TODO: socket timeout setzen: max wert <- burst -> min wert
 		c.SetReadDeadline(time.Now().Add(SOCKET_TIMEOUT_DEFAULT * time.Second))
 		line, err := reader.ReadString('\n')
 		if err == io.EOF {
