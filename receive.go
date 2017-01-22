@@ -33,7 +33,7 @@ func carbonMetricFilter(l string) (string, bool) {
 	if err != nil {
 		stats.augmentedMessages++
 		epoch = strconv.FormatInt(time.Now().Unix(), 10)
-		log.Infof("metric %s augmented with epoch %s\n", metric, epoch)
+		log.Debugf("metric %s augmented with epoch %s\n", metric, epoch)
 	}
 	return fmt.Sprintf("%s %s %s", metric, value, epoch), true
 }
@@ -68,8 +68,8 @@ func carbonClientHandler(c net.Conn, ch chan string) {
 			continue
 		}
 
-		metric, isCorrect := carbonMetricFilter(line)
-		if !isCorrect {
+		metric, isMetric := carbonMetricFilter(line)
+		if !isMetric {
 			log.Errorf("non metric received '%s' from %s\n", line, c.RemoteAddr().String())
 			stats.invalidMessages++
 			continue
