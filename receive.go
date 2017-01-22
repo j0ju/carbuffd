@@ -37,6 +37,7 @@ func carbonMetricFilter(l string) (string, bool) {
 	}
 	return fmt.Sprintf("%s %s %s", metric, value, epoch), true
 }
+
 func carbonClientHandler(c net.Conn, ch chan string) {
 	log.Noticef("%s accepted (connection# %d)\n", c.RemoteAddr().String(), stats.connectionCount)
 	stats.connectionCount++
@@ -54,9 +55,11 @@ func carbonClientHandler(c net.Conn, ch chan string) {
 			break
 		} else if netErr, ok := err.(net.Error); ok {
 			if netErr.Timeout() {
+				stats.inConnectionTimeouts++
 				log.Errorf("%s timeout (%d lines received)\n", c.RemoteAddr().String(), carbonClientHandler_metrics_ingress_count)
 				break
 			} else if !netErr.Temporary() {
+				stats.inConnectionErrors++
 				log.Errorf("%s temporary (%d lines received)\n", c.RemoteAddr().String(), carbonClientHandler_metrics_ingress_count)
 				break
 			}
@@ -88,6 +91,7 @@ func carbonClientHandler(c net.Conn, ch chan string) {
 	c.Close()
 	stats.currentConnectionCount--
 }
+
 func carbonServer(laddr string, ch chan string) {
 	l, err := net.Listen("tcp", laddr)
 	if err != nil {

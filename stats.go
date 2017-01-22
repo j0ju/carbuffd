@@ -14,6 +14,8 @@ import (
 type InternalStats struct {
 	connectionCount        uint64
 	currentConnectionCount uint64
+	inConnectionTimeouts   uint64
+	inConnectionErrors     uint64
 	messageChannelLimit    uint64
 	messageChannelSize     uint64
 	messagesRelayed        uint64
@@ -21,6 +23,7 @@ type InternalStats struct {
 	invalidMessages        uint64
 	augmentedMessages      uint64
 	uptimeSeconds          uint64
+	outConnectionErrors    uint64
 }
 
 var (

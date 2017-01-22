@@ -37,6 +37,7 @@ func metricsForwarder(raddr string, ch chan string) {
 
 		if netErr, ok := err.(net.Error); ok {
 			if !netErr.Temporary() {
+				stats.outConnectionErrors++
 				log.Errorf("non temporary error, resetting socket\n")
 				if c != nil {
 					(*c).Close()
