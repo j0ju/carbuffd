@@ -31,6 +31,10 @@ func initLogging() {
 		backend = logging.NewLogBackend(os.Stderr, "", 0)
 		logFormat = logging.MustStringFormatter(logFormatDefault)
 
+	} else if logFile == "systemd" {
+		backend = logging.NewLogBackend(os.Stderr, "", 0)
+		logFormat = logging.MustStringFormatter(logFormatPlain)
+
 	} else if logFile == "syslog" {
 		syslogPrefix := path.Base(os.Args[0])
 		backend, err = logging.NewSyslogBackendPriority(syslogPrefix, syslog.LOG_LOCAL4)

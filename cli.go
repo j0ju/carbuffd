@@ -27,6 +27,7 @@ func parseCommandLine() {
 		fmt.Fprintf(os.Stderr, "\n")
 		fmt.Fprintf(os.Stderr, "  Log files:\n")
 		fmt.Fprintf(os.Stderr, "    -       logging to STDERR (default)\n")
+		fmt.Fprintf(os.Stderr, "    systemd logging to STDERR without timestamps\n")
 		fmt.Fprintf(os.Stderr, "    syslog  logging to syslog (LOCAL4) \n")
 		fmt.Fprintf(os.Stderr, "    PATH    logging to an absolute PATH\n")
 		fmt.Fprintf(os.Stderr, "\n")
