@@ -13,32 +13,41 @@ import (
 	"time"
 )
 
-func carbonMetricFilter(l string) (string, bool) {
-	s := strings.SplitN(l, " ", 2)
-	if len(s) < 2 {
-		return "", false
-	}
-	// TODO: error handling, what if this is not a metric?
-	metric := s[0]
-	l = strings.TrimSpace(s[1])
-
-	s = strings.SplitN(l, " ", 2)
-	value := s[0]
-
-	epoch := ""
-	if len(s) > 1 {
-		epoch = s[1]
-	}
-	_, err := strconv.ParseUint(epoch, 10, 64)
-	if err != nil {
-		stats.augmentedMessages++
-		epoch = strconv.FormatInt(time.Now().Unix(), 10)
-		log.Debugf("metric %s augmented with epoch %s\n", metric, epoch)
-	}
-	return fmt.Sprintf("%s %s %s", metric, value, epoch), true
+type CarbonListener struct {
+	Stopper        chan bool
+	laddr          string
+	messageChannel chan string
 }
 
-func carbonClientHandler(c net.Conn, ch chan string) {
+func CreateCarbonListener(laddr string, ch chan string) *CarbonListener {
+	l := new(CarbonListener)
+	l.laddr = laddr
+	l.messageChannel = ch
+	l.Stopper = make(chan bool, 1)
+	return l
+}
+
+func (l *CarbonListener) Run() {
+	sock, err := net.Listen("tcp", laddr)
+	if err != nil {
+		log.Critical(err)
+		panic(err)
+	}
+	defer sock.Close()
+
+	log.Noticef("listening on %s\n", laddr)
+	for {
+		// TODO use Deadline and Stopper to Stop goroutine
+		c, err := sock.Accept()
+		if err != nil {
+			continue
+		}
+		go l.clientHandler(c)
+	}
+}
+
+// remove global stats
+func (l *CarbonListener) clientHandler(c net.Conn) {
 	log.Noticef("%s accepted (connection# %d)\n", c.RemoteAddr().String(), stats.connectionCount)
 	stats.connectionCount++
 	stats.currentConnectionCount++
@@ -70,20 +79,20 @@ func carbonClientHandler(c net.Conn, ch chan string) {
 			continue
 		}
 
-		metric, isMetric := carbonMetricFilter(line)
+		metric, isMetric := l.metricFilter(line)
 		if !isMetric {
 			log.Errorf("non metric received '%s' from %s\n", line, c.RemoteAddr().String())
 			stats.invalidMessages++
 			continue
 		}
 		log.Debugf("%s\n", line)
-		if !(len(ch) < cap(ch)-1) {
+		if !(len(l.messageChannel) < cap(l.messageChannel)-1) {
 			// dequeue old events to add newer events
-			<-ch
+			<-l.messageChannel
 			stats.messagesDropped++
-			log.Warningf("dropped event, qlen %d ~ cap %d\n", len(ch), cap(ch))
+			log.Warningf("dropped event, qlen %d ~ cap %d\n", len(l.messageChannel), cap(l.messageChannel))
 		}
-		ch <- metric
+		l.messageChannel <- metric
 		carbonClientHandler_metrics_ingress_count++
 	}
 
@@ -91,22 +100,29 @@ func carbonClientHandler(c net.Conn, ch chan string) {
 	stats.currentConnectionCount--
 }
 
-func carbonServer(laddr string, ch chan string) {
-	l, err := net.Listen("tcp", laddr)
-	if err != nil {
-		log.Critical(err)
-		panic(err)
+func (*CarbonListener) metricFilter(l string) (string, bool) {
+	s := strings.SplitN(l, " ", 2)
+	if len(s) < 2 {
+		return "", false
 	}
-	defer l.Close()
+	// TODO: error handling, what if this is not a metric?
+	metric := s[0]
+	l = strings.TrimSpace(s[1])
 
-	log.Noticef("listening on %s\n", laddr)
-	for {
-		c, err := l.Accept()
-		if err != nil {
-			continue
-		}
-		go carbonClientHandler(c, ch)
+	s = strings.SplitN(l, " ", 2)
+	value := s[0]
+
+	epoch := ""
+	if len(s) > 1 {
+		epoch = s[1]
 	}
+	_, err := strconv.ParseUint(epoch, 10, 64)
+	if err != nil {
+		stats.augmentedMessages++
+		epoch = strconv.FormatInt(time.Now().Unix(), 10)
+		log.Debugf("metric %s augmented with epoch %s\n", metric, epoch)
+	}
+	return fmt.Sprintf("%s %s %s", metric, value, epoch), true
 }
 
 // vim: foldmethod=syntax

@@ -12,7 +12,9 @@ func main() {
 	doQuit := make(chan bool, 1)
 
 	metricsChannel := make(chan string, metricsBufferSize)
-	go carbonServer(laddr, metricsChannel)
+	carbonServer := CreateCarbonListener(laddr, metricsChannel)
+
+	go carbonServer.Run()
 	go internalMetricsGenerator(metricsChannel)
 	go metricsForwarder(raddr, metricsChannel)
 
