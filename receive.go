@@ -14,39 +14,62 @@ import (
 )
 
 type CarbonListener struct {
-	Stopper        chan bool
-	laddr          string
+	laddr          *net.TCPAddr
+	socket         *net.TCPListener
 	messageChannel chan string
+	running        bool
 }
 
 func CreateCarbonListener(laddr string, ch chan string) *CarbonListener {
+	var err error
 	l := new(CarbonListener)
-	l.laddr = laddr
-	l.messageChannel = ch
-	l.Stopper = make(chan bool, 1)
-	return l
-}
-
-func (l *CarbonListener) Run() {
-	sock, err := net.Listen("tcp", laddr)
+	l.laddr, err = net.ResolveTCPAddr("tcp", laddr)
 	if err != nil {
 		log.Critical(err)
 		panic(err)
 	}
-	defer sock.Close()
+	l.messageChannel = ch
+	return l
+}
 
+func (l *CarbonListener) Stop() {
+	err := l.socket.SetDeadline(time.Now().Add(1 * time.Millisecond))
+	l.running = false
+	if err != nil {
+		log.Critical(err)
+		panic(err)
+	}
+}
+
+func (l *CarbonListener) Run() {
+	var err error
+	l.socket, err = net.ListenTCP("tcp", l.laddr)
+	if err != nil {
+		log.Critical(err)
+		panic(err)
+	}
+	defer l.socket.Close()
+
+	l.running = true
 	log.Noticef("listening on %s\n", laddr)
-	for {
-		// TODO use Deadline and Stopper to Stop goroutine
-		c, err := sock.Accept()
-		if err != nil {
-			continue
+	for l.running {
+		c, err := l.socket.Accept()
+		if netErr, ok := err.(net.Error); ok {
+			if netErr.Timeout() {
+				if l.running {
+					log.Errorf("listener on %s: %s\n", l.laddr, err)
+				}
+				continue
+			}
+		} else if err != nil {
+			log.Critical(err)
+			break
 		}
 		go l.clientHandler(c)
 	}
 }
 
-// remove global stats
+// TODO: remove global stats dependency
 func (l *CarbonListener) clientHandler(c net.Conn) {
 	log.Noticef("%s accepted (connection# %d)\n", c.RemoteAddr().String(), stats.connectionCount)
 	stats.connectionCount++
@@ -100,16 +123,16 @@ func (l *CarbonListener) clientHandler(c net.Conn) {
 	stats.currentConnectionCount--
 }
 
-func (*CarbonListener) metricFilter(l string) (string, bool) {
-	s := strings.SplitN(l, " ", 2)
+func (l *CarbonListener) metricFilter(m string) (string, bool) {
+	s := strings.SplitN(m, " ", 2)
 	if len(s) < 2 {
 		return "", false
 	}
 	// TODO: error handling, what if this is not a metric?
 	metric := s[0]
-	l = strings.TrimSpace(s[1])
+	m = strings.TrimSpace(s[1])
 
-	s = strings.SplitN(l, " ", 2)
+	s = strings.SplitN(m, " ", 2)
 	value := s[0]
 
 	epoch := ""
