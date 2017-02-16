@@ -4,7 +4,8 @@
 
 INSTDIR = /opt/go/bin
 
-all: carbuffd carbuffd.386 carbuffd.amd64 carbuffd.arm
+all: \
+  carbuffd
 
 clean:
 	rm -f carbuffd.386  carbuffd.amd64 carbuffd.arm carbuffd
