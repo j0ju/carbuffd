@@ -5,11 +5,16 @@ package main
 
 import ()
 
+var (
+	doQuit chan bool
+)
+
 func main() {
 	parseCommandLine()
 	initLogging()
+	initSignalHandling()
 
-	doQuit := make(chan bool, 1)
+	doQuit = make(chan bool, 1)
 
 	metricsChannel := make(chan string, metricsBufferSize)
 	carbonServer := CreateCarbonListener(laddr, metricsChannel)
