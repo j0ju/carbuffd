@@ -27,15 +27,15 @@ func initLogging() {
 		err       error
 	)
 
-	if logFile == "-" {
+	if Cfg.LogDestination == "-" {
 		backend = logging.NewLogBackend(os.Stderr, "", 0)
 		logFormat = logging.MustStringFormatter(logFormatDefault)
 
-	} else if logFile == "systemd" {
+	} else if Cfg.LogDestination == "systemd" {
 		backend = logging.NewLogBackend(os.Stderr, "", 0)
 		logFormat = logging.MustStringFormatter(logFormatPlain)
 
-	} else if logFile == "syslog" {
+	} else if Cfg.LogDestination == "syslog" {
 		syslogPrefix := path.Base(os.Args[0])
 		backend, err = logging.NewSyslogBackendPriority(syslogPrefix, syslog.LOG_LOCAL4)
 		if err != nil {
@@ -44,10 +44,10 @@ func initLogging() {
 		logFormat = logging.MustStringFormatter(logFormatSyslog)
 
 	} else {
-		if !path.IsAbs(logFile) {
-			log.Fatalf("logfile must be an absolute path: '%s'", logFile)
+		if !path.IsAbs(Cfg.LogDestination) {
+			log.Fatalf("logfile must be an absolute path: '%s'", Cfg.LogDestination)
 		}
-		f, err := os.OpenFile(logFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+		f, err := os.OpenFile(Cfg.LogDestination, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 		if err != nil {
 			log.Fatalf("error opening file: %v", err)
 		}
@@ -58,7 +58,7 @@ func initLogging() {
 	formatted := logging.NewBackendFormatter(backend, logFormat)
 
 	levelled := logging.AddModuleLevel(formatted)
-	levelled.SetLevel(logging.Level(logLevel), "main")
+	levelled.SetLevel(logging.Level(Cfg.LogLevel), "main")
 
 	logging.SetBackend(levelled)
 }

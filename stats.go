@@ -31,7 +31,7 @@ var (
 )
 
 func internalMetricsGenerator(ch chan string) {
-	if statsFmt == "" { // if statsFmt is empty, do not emit metrics
+	if Cfg.StatsFmt == "" { // if statsFmt is empty, do not emit metrics
 		return
 	}
 	hostname, err := os.Hostname()
@@ -41,9 +41,9 @@ func internalMetricsGenerator(ch chan string) {
 	startEpoch := time.Now().Unix()
 	hostname = strings.Replace(hostname, ".", "_", -1)
 	stats.messageChannelLimit = uint64(cap(ch))
-	tmpl := statsFmt + " %d %d"
+	tmpl := Cfg.StatsFmt + " %d %d"
 	for {
-		time.Sleep(time.Duration(statsInterval) * time.Second)
+		time.Sleep(time.Duration(Cfg.StatsInterval) * time.Second)
 		epoch := time.Now().Unix()
 
 		stats.messageChannelSize = uint64(len(ch))

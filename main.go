@@ -10,18 +10,23 @@ var (
 )
 
 func main() {
+	initConfig()
 	parseCommandLine()
+
 	initLogging()
 	initSignalHandling()
 
 	doQuit = make(chan bool, 1)
+	metricsChannel := make(chan string, Cfg.MetricsBufferSize)
 
-	metricsChannel := make(chan string, metricsBufferSize)
-	carbonServer := CreateCarbonListener(laddr, metricsChannel)
+	// start receivers
+	for _, r := range Cfg.Receivers {
+		r.instance = CreateTcpCarbonReceiver(r.Url, metricsChannel)
+		r.instance.Run()
+	}
 
-	go carbonServer.Run()
 	go internalMetricsGenerator(metricsChannel)
-	go metricsForwarder(raddr, metricsChannel)
+	go metricsForwarder(Cfg.RemoteAddr, metricsChannel)
 
 	<-doQuit
 }

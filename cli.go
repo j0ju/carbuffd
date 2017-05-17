@@ -4,6 +4,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/op/go-logging"
@@ -43,22 +44,21 @@ func parseCommandLine() {
 	}
 
 	// defaults are set in default.go
-	flag.Uint64Var(&metricsBufferSize, "size", metricsBufferSize, "default queue len")
-	flag.UintVar(&statsInterval, "interval", statsInterval, "interval for internal metrics")
-	flag.IntVar(&logLevel, "loglevel", logLevel, "log level")
-	flag.StringVar(&logFile, "logfile", logFile, "log file, instead of logging to STDERR")
+	flag.Uint64Var(&Cfg.MetricsBufferSize, "size", Cfg.MetricsBufferSize, "default queue len")
+	flag.UintVar(&Cfg.StatsInterval, "interval", Cfg.StatsInterval, "interval for internal metrics")
+	flag.IntVar(&Cfg.LogLevel, "loglevel", Cfg.LogLevel, "log level")
+	flag.StringVar(&Cfg.LogDestination, "logfile", Cfg.LogDestination, "log file, instead of logging to STDERR")
 	flag.Parse()
 
 	if len(flag.Args()) == 1 { // test mode receive only
-		laddr = flag.Args()[0]
+		Cfg.Receivers[0].Url = flag.Args()[0]
 	} else if len(flag.Args()) == 2 { // receive, augment, reley
-		laddr = flag.Args()[0]
-		raddr = flag.Args()[1]
+		Cfg.Receivers[0].Url = flag.Args()[0]
+		Cfg.RemoteAddr = flag.Args()[1]
 	} else {
 		flag.Usage()
 		os.Exit(1)
 	}
-
 }
 
 // vim: foldmethod=syntax
