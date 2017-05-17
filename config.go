@@ -17,12 +17,7 @@ const (
   {
     "Receivers": [
       {
-        "Name": "default",
-        "Url":  ":2003"
-      },
-      {
-        "Name": "default",
-        "Url":  ":2005"
+        "Url":  ""
       }
     ],
     "RemoteAddr":        "",
@@ -42,19 +37,19 @@ var (
 )
 
 type Config struct {
-	LogDestination    string
-	LogLevel          int
-	StatsInterval     uint
-	StatsFmt          string
-	MetricsBufferSize uint64
+	LogDestination    string `json:"LogDestination",omitifempty`
+	LogLevel          int    `json:"LogLevel",omitifempty`
+	StatsInterval     uint   `json:"StatsInterval",omitifempty`
+	StatsFmt          string `json:"StatsFmt",omitifempty`
+	MetricsBufferSize uint64 `json:"MetricsBufferSize",omitifempty`
 
 	Receivers  []*ConfigReceivers
-	RemoteAddr string
+	RemoteAddr string `json:"RemoteAddr",omitifempty`
 }
 
 type ConfigReceivers struct {
-	Name string
-	Url  string
+	Name string `json:"Name",omitifempty`
+	Url  string `json:"Url",omitifempty`
 
 	//  after unmarshalling call instance = CreateCarbonReceiver(Url)
 	instance CarbonReceiver
