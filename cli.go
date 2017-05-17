@@ -59,6 +59,9 @@ func parseCommandLine() {
 		flag.Usage()
 		os.Exit(1)
 	}
+
+	tmp, _ := json.MarshalIndent(Cfg, "", "  ")
+	fmt.Printf("%s\n", tmp)
 }
 
 // vim: foldmethod=syntax

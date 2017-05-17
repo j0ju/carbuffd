@@ -19,6 +19,10 @@ const (
       {
         "Name": "default",
         "Url":  ":2003"
+      },
+      {
+        "Name": "default",
+        "Url":  ":2005"
       }
     ],
     "RemoteAddr":        "",

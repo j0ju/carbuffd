@@ -3,7 +3,9 @@
 
 package main
 
-import ()
+import (
+	"fmt"
+)
 
 var (
 	doQuit chan bool
@@ -20,9 +22,10 @@ func main() {
 	metricsChannel := make(chan string, Cfg.MetricsBufferSize)
 
 	// start receivers
-	for _, r := range Cfg.Receivers {
+	for i, r := range Cfg.Receivers {
+		fmt.Printf("%d: %v\n", i, r)
 		r.instance = CreateTcpCarbonReceiver(r.Url, metricsChannel)
-		r.instance.Run()
+		go r.instance.Run()
 	}
 
 	go internalMetricsGenerator(metricsChannel)

@@ -34,6 +34,6 @@ func initSignalHandling() {
 	//signal.Notify(c, syscall.SIGHUP)
 	//signal.Notify(c, syscall.SIGQUIT)
 	//signal.Notify(c, syscall.SIGTERM)
-	//signal.Notify(c, syscall.SIGUSR1)
+	signal.Notify(c, syscall.SIGUSR1)
 	//signal.Notify(c, syscall.SIGUSR2)
 }
