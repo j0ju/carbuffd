@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"runtime"
 	"strings"
 	"time"
 )
@@ -24,6 +25,9 @@ type InternalStats struct {
 	augmentedMessages      uint64
 	uptimeSeconds          uint64
 	outConnectionErrors    uint64
+	numGoRoutines          uint64
+	numGC                  uint64
+	heapAlloc              uint64
 }
 
 var (
@@ -40,8 +44,14 @@ func internalMetricsGenerator(ch chan string) {
 	}
 	startEpoch := time.Now().Unix()
 	hostname = strings.Replace(hostname, ".", "_", -1)
-	stats.messageChannelLimit = uint64(cap(ch))
 	tmpl := statsFmt + " %d %d"
+
+	stats.messageChannelLimit = uint64(cap(ch))
+	stats.numGoRoutines = uint64(runtime.NumGoroutine())
+	var mem runtime.MemStats
+	runtime.ReadMemStats(&mem)
+	stats.heapAlloc = mem.HeapAlloc
+	stats.numGC = uint64(mem.NumGC)
 	for {
 		time.Sleep(time.Duration(statsInterval) * time.Second)
 		epoch := time.Now().Unix()
