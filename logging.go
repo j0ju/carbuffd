@@ -4,6 +4,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/op/go-logging"
 	"log/syslog"
 	"os"
@@ -18,7 +19,26 @@ const (
 
 var (
 	log = logging.MustGetLogger("main")
+	// should go into avoidDuplicatesBackend
+	lastLevel   logging.Level
+	lastMessage string
 )
+
+type avoidDuplicatesBackend struct {
+	backend logging.Backend
+}
+
+func (adbe avoidDuplicatesBackend) Log(l logging.Level, calldepth int, r *logging.Record) error {
+	if r.Level == lastLevel && r.Message() == lastMessage {
+		return nil
+	}
+
+	lastLevel = r.Level
+	lastMessage = r.Message()
+
+	calldepth += 2
+	return adbe.backend.Log(l, calldepth, r)
+}
 
 func initLogging() {
 	var (
@@ -55,12 +75,14 @@ func initLogging() {
 		logFormat = logging.MustStringFormatter(logFormatDefault)
 	}
 
-	formatted := logging.NewBackendFormatter(backend, logFormat)
+	{
+		backend = &avoidDuplicatesBackend{backend: backend}
+		formatted := logging.NewBackendFormatter(backend, logFormat)
+		levelled := logging.AddModuleLevel(formatted)
+		levelled.SetLevel(logging.Level(logLevel), "main")
+		logging.SetBackend(levelled)
+	}
 
-	levelled := logging.AddModuleLevel(formatted)
-	levelled.SetLevel(logging.Level(logLevel), "main")
-
-	logging.SetBackend(levelled)
 }
 
 // vim: foldmethod=syntax
