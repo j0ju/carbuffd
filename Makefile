@@ -27,18 +27,14 @@ $(INSTDIR)/carbuffd: carbuffd /etc/systemd/system/carbuffd.service /etc/carbuffd
 
 carbuffd: main.go
 	go build -o $@
-	strip -g $@
 
 carbuffd.386: main.go
 	GOARCH=386   go build -o $@
-	strip -g $@
 
 carbuffd.amd64: main.go
 	GOARCH=amd64 go build -o $@
-	strip -g $@
 
 carbuffd.arm: main.go
 	GOARCH=arm   go build -o $@
-	strip -g $@
 
 # vim: noet
