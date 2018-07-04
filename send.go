@@ -54,7 +54,13 @@ func metricsForwarder(raddr string, ch chan string) {
 			stats.messagesRelayed++
 		} else {
 			time.Sleep(err_wait_msec)
+
+			// limit exponential backoff to 30 minutes
 			err_wait_msec *= 2
+			if err_wait_msec > 1800*time.Second {
+				err_wait_msec = 1800 * time.Second
+			}
+
 			// if channel is not full reinsert it
 			if len(ch) < cap(ch) {
 				ch <- m
