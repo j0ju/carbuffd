@@ -27,6 +27,8 @@ func metricsForwarder(raddr string, ch chan string) {
 		if c == nil && raddr != "" {
 			if c, err = connectToRemote(raddr); err != nil {
 				c = nil
+			} else {
+				log.Noticef("connected to %s opened, qlen %d\n", (*c).RemoteAddr().String(), len(ch))
 			}
 		}
 		// if we have a connection send it
@@ -38,7 +40,7 @@ func metricsForwarder(raddr string, ch chan string) {
 		if netErr, ok := err.(net.Error); ok {
 			if !netErr.Temporary() {
 				stats.outConnectionErrors++
-				log.Errorf("non temporary error, resetting socket\n")
+				log.Errorf("%v, non temporary error, resetting socket\n", err)
 				if c != nil {
 					(*c).Close()
 					c = nil
